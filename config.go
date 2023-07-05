@@ -9,7 +9,7 @@ import (
 )
 
 var DefaultOptions = Options{
-	LogLevel:        slog.LevelInfo,
+	LogLevel:        "info",
 	LevelFieldName:  "level",
 	JSON:            false,
 	Concise:         false,
@@ -24,8 +24,8 @@ var DefaultOptions = Options{
 type Options struct {
 	// LogLevel defines the minimum level of severity that app should log.
 	// Must be one of:
-	// slog.LevelDebug, slog.LevelInfo, slog.LevelWarn, slog.LevelError
-	LogLevel slog.Level
+	// "debug", "info", "warn", "error"
+	LogLevel string
 
 	// LevelFieldName sets the field name for the log level or severity.
 	// Some providers parse and search for different field names.
@@ -72,6 +72,23 @@ type Options struct {
 	// the location where the logger was called
 	// its "" if not enabled
 	SourceFieldName string
+}
+
+// Take the string representation of the log level and turn that into a compatible slog.Level
+// of underlying zerolog pkg and its global logger.
+func parseLogLevel(level string) slog.Level {
+	switch level {
+	case "debug":
+		return slog.LevelDebug
+	case "info":
+		return slog.LevelInfo
+	case "warn":
+		return slog.LevelWarn
+	case "error":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
 }
 
 // Configure will set new global/default options for the httplog and behaviour
@@ -126,7 +143,7 @@ func Configure(opts Options) {
 	}
 
 	handlerOpts := &slog.HandlerOptions{
-		Level:       opts.LogLevel,
+		Level:       parseLogLevel(opts.LogLevel),
 		ReplaceAttr: replaceAttrs,
 		AddSource:   addSource,
 	}
